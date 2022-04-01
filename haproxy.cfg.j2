@@ -1,0 +1,28 @@
+global
+        daemon
+
+defaults
+        mode http
+        timeout connect 5s
+        timeout client 30s
+        timeout server 10s
+
+listen stats
+        bind *:2000
+        stats enable
+        stats refresh 5s
+        stats hide-version
+        stats realm HAproxy\ Stats
+        stats uri /stats
+        stats auth admin:password
+
+frontend http-in
+        bind *:80
+        default_backend webservers
+
+backend webservers
+        balance leastconn
+        option httpchk
+{% for ip in groups['WebServer'] %}
+        server WS{{loop.index}} {{ip}}:80 check
+{% endfor %}
